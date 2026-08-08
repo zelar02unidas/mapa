@@ -37,11 +37,10 @@
     novo:    { label: 'Ativos novos',       color: '#7c3aed', cls: 'b-novo' },
     nunca:   { label: 'Nunca visitado',     color: '#ef4444', cls: 'b-nunca' },
     velho:   { label: '12+ meses sem visita', color: '#f97316', cls: 'b-velho' },
-    medio:   { label: '3–12 meses',         color: '#d97706', cls: 'b-medio' },
-    recente: { label: 'Menos de 3 meses',   color: '#16a34a', cls: 'b-recente' },
+    recente: { label: 'Visitado em 12 meses', color: '#16a34a', cls: 'b-recente' },
     semdata: { label: 'Sem data',           color: '#94a3b8', cls: 'b-semdata' }
   };
-  var STATUS_KEYS = ['novo', 'nunca', 'velho', 'medio', 'recente', 'semdata'];
+  var STATUS_KEYS = ['novo', 'nunca', 'velho', 'recente'];
 
   function statusOf(u, now) {
     var v = String(u.vi).toUpperCase();
@@ -50,7 +49,7 @@
     var d = parseMes(u.vi);
     if (!d) return 'semdata';
     var m = monthDiff(d, now);
-    return m > 12 ? 'velho' : (m >= 3 ? 'medio' : 'recente');
+    return m > 12 ? 'velho' : 'recente';
   }
 
   /* ---------- enriquecimento ---------- */
@@ -422,7 +421,7 @@
       { cls: 'red', v: FMT.format(c.nunca || 0), l: 'Nunca visitados' },
       { cls: 'orange', v: FMT.format((c.velho || 0) + (c.nunca || 0)), l: '12+ meses sem visita' },
       { cls: 'violet', v: FMT.format(c.novo || 0), l: 'Ativos novos' },
-      { cls: 'green', v: FMT.format(c.recente || 0), l: 'Visitados < 3 meses' }
+      { cls: 'green', v: FMT.format(c.recente || 0), l: 'Visitados em 12 meses' }
     ];
     el.innerHTML = cards.map(function (c) {
       return '<div class="stat ' + c.cls + '"><div class="v">' + c.v + '</div><div class="l">' + c.l + '</div></div>';
