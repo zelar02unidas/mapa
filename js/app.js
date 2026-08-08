@@ -417,7 +417,7 @@
     FILTERED.forEach(function (u) { c[u._status] = (c[u._status] || 0) + 1; });
     var cards = [
       { cls: 'blue', v: FMT.format(total), l: 'Unidades no filtro' },
-      { cls: 'blue', v: FMT.format(ativos), l: 'Ativos instalados' },
+      { cls: 'blue', v: FMT.format(ativos), l: 'Ativos locados' },
       { cls: 'red', v: FMT.format(c.nunca || 0), l: 'Nunca visitados' },
       { cls: 'orange', v: FMT.format((c.velho || 0) + (c.nunca || 0)), l: '12+ meses sem visita' },
       { cls: 'violet', v: FMT.format(c.novo || 0), l: 'Ativos novos' },
