@@ -1063,8 +1063,29 @@
     fillEntregaSelects();
     initTable();
     initTabs();
+    initSidebarToggle();
     applyFilters();
     renderMultiAll();
+  }
+
+  function initSidebarToggle() {
+    var sb = document.getElementById('sidebar');
+    var bd = document.getElementById('sidebarBackdrop');
+    var btn = document.getElementById('sidebarToggle');
+    if (!sb || !bd || !btn) return;
+    var close = function () {
+      sb.classList.remove('open');
+      bd.classList.remove('show');
+    };
+    btn.addEventListener('click', function () {
+      sb.classList.toggle('open');
+      bd.classList.toggle('show');
+    });
+    bd.addEventListener('click', close);
+    sb.addEventListener('click', function (e) {
+      if (e.target.closest('.preset, .chip, .checkline, select')) close();
+    });
+    window.addEventListener('resize', function () { if (window.innerWidth > 768) close(); });
   }
 
   loadData();
