@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Zelar — Ativos por Unidade</title>
+<meta name="description" content="Painel interativo dos ativos instalados por unidade: mapa, filtros e relatório.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link rel="stylesheet" href="lib/css/leaflet.css">
+<link rel="stylesheet" href="lib/css/MarkerCluster.css">
+<link rel="stylesheet" href="lib/css/MarkerCluster.Default.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Mapa <span>Zelar</span></h1>
+        <p class="tagline">Ativos instalados por unidade</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="data-source" id="dataSource" title="Fonte dos dados">
+        <span class="dot" id="dataDot"></span>
+        <span id="dataSourceText">Carregando…</span>
+      </div>
+      <button class="icon-btn" id="themeToggle" title="Alternar tema (claro/escuro)" aria-label="Alternar tema">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="banner hidden" id="banner" role="alert"></div>
+
+<main class="layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <h2>Filtros</h2>
+      <button class="btn btn-ghost btn-sm" id="clearFilters">Limpar tudo</button>
+    </div>
+
+    <div class="presets">
+      <button class="preset" data-preset="nunca"><span class="swatch sw-red"></span>Nunca visitados</button>
+      <button class="preset" data-preset="velho"><span class="swatch sw-orange"></span>Sem visita há 12+ meses</button>
+      <button class="preset" data-preset="novo"><span class="swatch sw-violet"></span>Ativos novos</button>
+      <button class="preset" data-preset="recente"><span class="swatch sw-green"></span>Visitados no último ano</button>
+    </div>
+
+    <div class="fgroup">
+      <label class="flabel" for="q">Buscar</label>
+      <input type="search" id="q" class="input" placeholder="Cliente, unidade ou cidade…" autocomplete="off">
+    </div>
+
+    <div class="fgroup" id="fg-cliente">
+      <label class="flabel">Cliente</label>
+      <div class="multi" data-multi="cliente">
+        <button class="multi-btn" type="button"><span class="multi-label">Todos</span><span class="multi-count" data-count></span><span class="chev"></span></button>
+        <div class="multi-pop hidden">
+          <input type="search" class="multi-search input" placeholder="Buscar cliente…">
+          <div class="multi-options"></div>
+          <div class="multi-actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-all>Selecionar todos</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-none>Nenhum</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fgroup" id="fg-unidade">
+      <label class="flabel">Unidade</label>
+      <div class="multi" data-multi="unidade">
+        <button class="multi-btn" type="button"><span class="multi-label">Todas</span><span class="multi-count" data-count></span><span class="chev"></span></button>
+        <div class="multi-pop hidden">
+          <input type="search" class="multi-search input" placeholder="Buscar unidade…">
+          <div class="multi-options"></div>
+          <div class="multi-actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-all>Selecionar todas</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-none>Nenhuma</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <label class="flabel">Segmento</label>
+      <div class="chips" data-chips="segmento"></div>
+    </div>
+
+    <div class="fgroup">
+      <label class="flabel">Estado</label>
+      <div class="chips" data-chips="estado"></div>
+    </div>
+
+    <div class="fgroup" id="fg-consultor">
+      <label class="flabel">Consultor</label>
+      <div class="multi" data-multi="consultor">
+        <button class="multi-btn" type="button"><span class="multi-label">Todos</span><span class="multi-count" data-count></span><span class="chev"></span></button>
+        <div class="multi-pop hidden">
+          <input type="search" class="multi-search input" placeholder="Buscar consultor…">
+          <div class="multi-options"></div>
+          <div class="multi-actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-all>Selecionar todos</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-none>Nenhum</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <details class="fgroup advanced" open>
+      <summary class="flabel">Quantidade de ativos</summary>
+      <div class="row2">
+        <label class="mini">Mínimo<input type="number" id="atMin" class="input" min="0" placeholder="0"></label>
+        <label class="mini">Máximo<input type="number" id="atMax" class="input" min="0" placeholder="∞"></label>
+      </div>
+      <label class="checkline"><input type="checkbox" id="atExact"> quantidade exata (ignora min/máx)</label>
+      <div class="row2 hide" id="exactRow">
+        <label class="mini">Exato<input type="number" id="atExactVal" class="input" min="0" placeholder="ex.: 38"></label>
+      </div>
+    </details>
+
+    <details class="fgroup advanced" open>
+      <summary class="flabel">Distância (KM)</summary>
+      <div class="row2">
+        <label class="mini">Mínimo<input type="number" id="kmMin" class="input" min="0" placeholder="0"></label>
+        <label class="mini">Máximo<input type="number" id="kmMax" class="input" min="0" placeholder="∞"></label>
+      </div>
+    </details>
+
+    <details class="fgroup advanced" open>
+      <summary class="flabel">Última visita</summary>
+      <div class="chips chips-sm" data-chips="status"></div>
+      <label class="checkline"><input type="checkbox" id="viSemData"> incluir sem data de visita</label>
+      <div class="row2">
+        <label class="mini">Visita há mais de<select id="viMais" class="input"><option value="">—</option><option>3</option><option>6</option><option>12</option><option>24</option><option>36</option><option>48</option><option>60</option></select>meses</label>
+        <label class="mini">Visita há menos de<select id="viMenos" class="input"><option value="">—</option><option>3</option><option>6</option><option>12</option><option>24</option><option>36</option></select>meses</label>
+      </div>
+    </details>
+
+    <details class="fgroup advanced">
+      <summary class="flabel">Entrega (idade dos ativos)</summary>
+      <div class="row2">
+        <label class="mini">Entregue há menos de<select id="enMenos" class="input"><option value="">—</option><option>3</option><option>6</option><option>12</option><option>24</option><option>36</option></select>meses</label>
+      </div>
+      <div class="row2">
+        <label class="mini">De<select id="enDe" class="input"></select></label>
+        <label class="mini">Até<select id="enAte" class="input"></select></label>
+      </div>
+    </details>
+
+    <div class="sidebar-foot">
+      <button class="btn btn-primary btn-block" id="clearFilters2">Limpar todos os filtros</button>
+    </div>
+  </aside>
+
+  <section class="content">
+
+    <section class="stats" id="stats"></section>
+
+    <div class="view-tabs">
+      <button class="tab active" data-view="mapa">🗺️ Mapa</button>
+      <button class="tab" data-view="tabela">📋 Tabela <span class="tab-badge" id="countBadge"></span></button>
+    </div>
+
+    <section class="view active" id="view-mapa">
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-tabela">
+      <div class="table-toolbar">
+        <span class="table-info" id="tableInfo"></span>
+        <button class="btn btn-outline btn-sm" id="exportCsv">⬇ Exportar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table class="grid" id="grid">
+          <thead>
+            <tr>
+              <th data-k="cl" title="Ordenar">Cliente</th>
+              <th data-k="un" title="Ordenar">Unidade</th>
+              <th data-k="ci" title="Ordenar">Cidade / UF</th>
+              <th data-k="sg" title="Ordenar">Segmento</th>
+              <th data-k="at" title="Ordenar" class="num">Ativos</th>
+              <th data-k="vi" title="Ordenar">Última visita</th>
+              <th data-k="en" title="Ordenar">Entrega</th>
+              <th data-k="co" title="Ordenar">Consultor</th>
+              <th data-k="km" title="Ordenar" class="num">KM</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </section>
+</main>
+
+<footer class="footer">
+  <span>Mapa Zelar</span> ·
+  <span>Dados: <span id="footSource">—</span></span> ·
+  <span>Mapas © OpenStreetMap / CARTO</span>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/config.js"></script>
+<script src="js/geo.js"></script>
+<script src="lib/js/leaflet.js"></script>
+<script src="lib/js/leaflet.markercluster.js"></script>
+<script src="lib/js/xlsx.full.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
