@@ -91,9 +91,19 @@
       </div>
     </div>
 
-    <div class="fgroup">
+    <div class="fgroup" id="fg-segmento">
       <label class="flabel">Segmento</label>
-      <div class="chips" data-chips="segmento"></div>
+      <div class="multi" data-multi="segmento">
+        <button class="multi-btn" type="button"><span class="multi-label">Todos</span><span class="multi-count" data-count></span><span class="chev"></span></button>
+        <div class="multi-pop hidden">
+          <input type="search" class="multi-search input" placeholder="Buscar segmento…">
+          <div class="multi-options"></div>
+          <div class="multi-actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-all>Selecionar todos</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-multi-none>Nenhum</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="fgroup">

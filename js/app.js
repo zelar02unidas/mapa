@@ -145,46 +145,57 @@
   /* ---------- filtros ---------- */
   function clean(s) { return (s || '').toLowerCase().trim(); }
 
-  function applyFilters() {
-    var now = new Date();
-    var q = clean(state.q);
+  /* Predicado base dos filtros. O parametro `exclude` faz um filtro
+     ignorar a si mesmo (usado para as opcoes de cada filtro respeitarem
+     os demais filtros ativos). A busca `q` nao restringe as opcoes. */
+  function matches(u, exclude) {
     var st = state;
+    var now = new Date();
+    if (exclude !== 'cliente' && Object.keys(st.cliente).length && !st.cliente[u.cl]) return false;
+    if (exclude !== 'unidade' && Object.keys(st.unidade).length && !st.unidade[u.un]) return false;
+    if (exclude !== 'segmento' && Object.keys(st.segmento).length && !st.segmento[u.sg]) return false;
+    if (exclude !== 'estado' && Object.keys(st.estado).length && !st.estado[u.es]) return false;
+    if (exclude !== 'consultor' && Object.keys(st.consultor).length && !st.consultor[u.co]) return false;
+    if (exclude !== 'status' && Object.keys(st.status).length && !st.status[u._status]) return false;
+
+    if (st.atExact && st.atExactVal !== '' && u._at !== +st.atExactVal) return false;
+    if (!st.atExact) {
+      if (st.atMin !== '' && u._at < +st.atMin) return false;
+      if (st.atMax !== '' && u._at > +st.atMax) return false;
+    }
+    if (st.kmMin !== '' && u._km < +st.kmMin) return false;
+    if (st.kmMax !== '' && u._km > +st.kmMax) return false;
+
+    if (u._status === 'semdata' && !st.viSemData) return false;
+
+    if (st.viMais !== '' && (u._status === 'nunca' || !u._viDate)) return false;
+    if (st.viMais !== '' && u._viDate) {
+      var m = monthDiff(u._viDate, now);
+      if (!(m > +st.viMais)) return false;
+    }
+    if (st.viMenos !== '' && u._viDate) {
+      if (monthDiff(u._viDate, now) > +st.viMenos) return false;
+    }
+    if (st.enMenos !== '' && u._enDate) {
+      if (monthDiff(u._enDate, now) > +st.enMenos) return false;
+    }
+    if (st.enDe && u._enDate && u._enDate.getFullYear() < +st.enDe) return false;
+    if (st.enAte && u._enDate && u._enDate.getFullYear() > +st.enAte) return false;
+    return true;
+  }
+
+  function baseSet(exclude) {
+    return ALL.filter(function (u) { return matches(u, exclude); });
+  }
+
+  function applyFilters() {
+    var q = clean(state.q);
     FILTERED = ALL.filter(function (u) {
       if (q) {
         var hay = clean([u.cl, u.un, u.ci, u.es, u.sg, u.co].join(' '));
         if (hay.indexOf(q) === -1) return false;
       }
-      if (Object.keys(st.cliente).length && !st.cliente[u.cl]) return false;
-      if (Object.keys(st.unidade).length && !st.unidade[u.un]) return false;
-      if (Object.keys(st.segmento).length && !st.segmento[u.sg]) return false;
-      if (Object.keys(st.estado).length && !st.estado[u.es]) return false;
-      if (Object.keys(st.consultor).length && !st.consultor[u.co]) return false;
-      if (Object.keys(st.status).length && !st.status[u._status]) return false;
-
-      if (st.atExact && st.atExactVal !== '' && u._at !== +st.atExactVal) return false;
-      if (!st.atExact) {
-        if (st.atMin !== '' && u._at < +st.atMin) return false;
-        if (st.atMax !== '' && u._at > +st.atMax) return false;
-      }
-      if (st.kmMin !== '' && u._km < +st.kmMin) return false;
-      if (st.kmMax !== '' && u._km > +st.kmMax) return false;
-
-      if (u._status === 'semdata' && !st.viSemData) return false;
-
-      if (st.viMais !== '' && (u._status === 'nunca' || !u._viDate)) return false;
-      if (st.viMais !== '' && u._viDate) {
-        var m = monthDiff(u._viDate, now);
-        if (!(m > +st.viMais)) return false;
-      }
-      if (st.viMenos !== '' && u._viDate) {
-        if (monthDiff(u._viDate, now) > +st.viMenos) return false;
-      }
-      if (st.enMenos !== '' && u._enDate) {
-        if (monthDiff(u._enDate, now) > +st.enMenos) return false;
-      }
-      if (st.enDe && u._enDate && u._enDate.getFullYear() < +st.enDe) return false;
-      if (st.enAte && u._enDate && u._enDate.getFullYear() > +st.enAte) return false;
-      return true;
+      return matches(u, null);
     });
     render();
   }
@@ -217,9 +228,9 @@
   }
 
   /* ---------- componentes: multi-select ---------- */
-  function buildCounts(field) {
+  function buildCounts(field, base) {
     var c = {};
-    ALL.forEach(function (u) { var v = u[field] || '—'; c[v] = (c[v] || 0) + 1; });
+    (base || ALL).forEach(function (u) { var v = u[field] || '—'; c[v] = (c[v] || 0) + 1; });
     return c;
   }
   function sortedKeys(counts) {
@@ -239,7 +250,7 @@
   }
 
   function initMulti() {
-    var mapCfg = { cliente: { f: 'cl', label: 'Cliente' }, unidade: { f: 'un', label: 'Unidade' }, consultor: { f: 'co', label: 'Consultor' } };
+    var mapCfg = { cliente: { f: 'cl', label: 'Cliente' }, unidade: { f: 'un', label: 'Unidade' }, segmento: { f: 'sg', label: 'Segmento' }, consultor: { f: 'co', label: 'Consultor' } };
     document.querySelectorAll('.multi').forEach(function (el) {
       var name = el.getAttribute('data-multi');
       var cfg = mapCfg[name];
@@ -255,15 +266,18 @@
       });
       search.addEventListener('input', function () { renderOpts(clean(search.value)); });
       el.querySelector('[data-multi-all]').addEventListener('click', function () {
-        state[name] = {}; buildCounts(cfg.f) && sortedKeys(buildCounts(cfg.f)).forEach(function (k) { state[name][k] = 1; });
+        state[name] = {};
+        sortedKeys(buildCounts(cfg.f, baseSet(name))).forEach(function (k) { state[name][k] = 1; });
         renderOpts(clean(search.value)); renderMultiAll(); applyFilters();
       });
       el.querySelector('[data-multi-none]').addEventListener('click', function () {
         state[name] = {}; renderOpts(clean(search.value)); renderMultiAll(); applyFilters();
       });
       function renderOpts(q) {
-        var counts = buildCounts(cfg.f);
+        var base = baseSet(name);
+        var counts = buildCounts(cfg.f, base);
         var keys = sortedKeys(counts).filter(function (k) { return !q || clean(k).indexOf(q) > -1; });
+        Object.keys(state[name]).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); });
         opts.innerHTML = '';
         keys.forEach(function (k) {
           var row = document.createElement('label');
@@ -280,7 +294,7 @@
           if (state[name][k]) span.className = 'on';
           var n = document.createElement('span');
           n.className = 'n';
-          n.textContent = FMT.format(counts[k]);
+          n.textContent = counts[k] ? FMT.format(counts[k]) : '0';
           row.appendChild(cb); row.appendChild(span); row.appendChild(n);
           opts.appendChild(row);
         });
@@ -296,14 +310,13 @@
 
   /* ---------- componentes: chips ---------- */
   function renderChipsAll() {
-    renderChips('segmento', function (u) { return u.sg; });
     renderChips('estado', function (u) { return u.es; });
     renderChips('status', function (u) { return u._status; }, true);
   }
   function renderChips(name, fn, meta) {
     var el = document.querySelector('[data-chips="' + name + '"]');
     var counts = {};
-    ALL.forEach(function (u) { var v = fn(u); counts[v] = (counts[v] || 0) + 1; });
+    baseSet(name).forEach(function (u) { var v = fn(u); counts[v] = (counts[v] || 0) + 1; });
     var keys = meta ? STATUS_KEYS.filter(function (k) { return counts[k]; }) : sortedKeys(counts);
     el.innerHTML = '';
     keys.forEach(function (k) {
