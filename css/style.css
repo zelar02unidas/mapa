@@ -190,3 +190,27 @@ html[data-theme="dark"] .pin{border-color:#0b1120}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* menu de filtro nos cabecalhos da tabela (estilo Excel) */
+.hmenu{position:fixed;z-index:3000;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);min-width:250px;max-width:330px;max-height:min(72vh,500px);overflow-y:auto;padding:6px}
+.hmenu .hm-sec{padding:9px;border-bottom:1px dashed var(--line)}
+.hmenu .hm-sec:last-child{border-bottom:none}
+.hmenu .hm-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.hmenu .hm-btn{display:block;width:100%;text-align:left;padding:7px 10px;border-radius:8px;border:none;background:transparent;color:var(--text);cursor:pointer;font:inherit;font-size:12.5px}
+.hmenu .hm-btn:hover{background:var(--brand-soft)}
+.hmenu .hm-btn.on{background:var(--brand-soft);color:var(--brand2);font-weight:700}
+.hmenu .hm-search{margin-bottom:6px}
+.hmenu .hm-txt{margin-bottom:6px}
+.hmenu .hm-list{max-height:190px;overflow-y:auto}
+.hmenu .hm-box{display:flex;flex-direction:column;gap:7px}
+.hmenu .hm-box .row2{gap:7px}
+.hmenu .hm-actions{display:flex;justify-content:space-between;gap:6px}
+.hmenu .hm-chips{display:flex;flex-wrap:wrap;gap:5px}
+.hmenu .hm-chip{border:1px solid var(--line);background:var(--card2);border-radius:99px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted);font-family:inherit}
+.hmenu .hm-chip:hover{color:var(--text)}
+.hmenu .hm-chip.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand2);font-weight:700}
+.hmenu .checkline{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text);padding:2px 0}
+.hmenu .checkline input{accent-color:var(--brand)}
+.hmenu .hm-box .mini{display:flex;flex-direction:column;gap:4px;flex:1;font-size:11px;color:var(--muted)}
+.hmenu .hm-box .mini .input{width:100%}
+.hmenu .opt input{accent-color:var(--brand)}
