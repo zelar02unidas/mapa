@@ -1,6 +1,8 @@
 # Mapa Zelar
 
-**Acesso:** https://zelar02unidas.github.io/mapa/
+Painel interativo de ativos locados por unidade (Unidas Pesados).
+
+**Acesso:** https://mapa.zelar02-unidas.workers.dev/
 
 ## Como funciona
 
@@ -10,6 +12,3 @@
   automaticamente em poucos minutos.
 - Se a planilha não estiver acessível, o site exibe uma cópia embutida
   dos dados e avisa na tela.
-- Mapa com agrupamento por região, filtros (cliente, unidade, segmento,
-  estado, consultor, ativos, distância e última visita), tabela
-  ordenável e exportação em CSV.
